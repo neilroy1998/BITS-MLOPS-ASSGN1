@@ -1,12 +1,49 @@
 [project]
 name = "mlops-assgn1"
 version = "0.1.0"
-description = "Add your description here"
+description = "MLOps Assignment 1: California Housing (Regression Pipeline)"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "dvc>=3.61.0",
+    "fastapi>=0.116.1",
+    "joblib>=1.5.1",
+    "loguru>=0.7.3",
+    "mlflow>=3.1.4",
+    "numpy>=2.3.2",
+    "pandas>=2.3.1",
+    "pandera>=0.25.0",
+    "prometheus-client>=0.22.1",
+    "pydantic>=2.11.7",
+    "python-dotenv>=1.1.1",
+    "scikit-learn>=1.7.1",
+    "uvicorn>=0.35.0",
+]
 
 [tool.uv.workspace]
-members = [
-    "mlops_assign1",
+members = [ "." ]
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+max-line-length = 88
+exclude = [
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist"
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "flake8>=7.3.0",
+    "isort>=6.0.1",
+    "pre-commit>=4.2.0",
+    "pytest>=8.4.1",
 ]
