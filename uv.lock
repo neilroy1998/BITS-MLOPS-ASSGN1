@@ -1375,6 +1375,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "scikit-learn" },
+    { name = "seaborn" },
     { name = "uvicorn" },
 ]
 
@@ -1401,6 +1402,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "scikit-learn", specifier = ">=1.7.1" },
+    { name = "seaborn", specifier = ">=0.13.2" },
     { name = "uvicorn", specifier = ">=0.35.0" },
 ]
 
@@ -2274,6 +2276,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b3/d1/be7276627e28f7da75518f45640b859068218cf089166e9d2419d9bebca2/scmrepo-3.5.1.tar.gz", hash = "sha256:b7266d6af10683d235428a4148b8527d0bb31109e60e51184866efd5c31ae515", size = 96625, upload-time = "2025-08-02T03:01:57.748Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/03/dd/cf7ec05221ce37c9cd3f5fb2a2674acc8d4b7f912bf701f7b5ccc1fbace0/scmrepo-3.5.1-py3-none-any.whl", hash = "sha256:fb74ce52635a6f1e6c8ba5569e2156633f406064d527df3f2dd2bda7b65a296f", size = 73929, upload-time = "2025-08-02T03:01:56.342Z" },
+]
+
+[[package]]
+name = "seaborn"
+version = "0.13.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "pandas" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/86/59/a451d7420a77ab0b98f7affa3a1d78a313d2f7281a57afb1a34bae8ab412/seaborn-0.13.2.tar.gz", hash = "sha256:93e60a40988f4d65e9f4885df477e2fdaff6b73a9ded434c1ab356dd57eefff7", size = 1457696, upload-time = "2024-01-25T13:21:52.551Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/83/11/00d3c3dfc25ad54e731d91449895a79e4bf2384dc3ac01809010ba88f6d5/seaborn-0.13.2-py3-none-any.whl", hash = "sha256:636f8336facf092165e27924f223d3c62ca560b1f2bb5dff7ab7fad265361987", size = 294914, upload-time = "2024-01-25T13:21:49.598Z" },
 ]
 
 [[package]]
