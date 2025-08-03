@@ -1,0 +1,44 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/pipelines/preprocess_runner.py
+    deps:
+    - path: data/raw/california_housing.csv
+      hash: md5
+      md5: ca5b757f0729c68d74d05bf9d9ca8486
+      size: 1895154
+    - path: src/data/preprocess_03.py
+      hash: md5
+      md5: 407285d1e59bff465ab67d1db4e4ef7f
+      size: 1827
+    - path: src/pipelines/preprocess_runner.py
+      hash: md5
+      md5: 5b038c0e17e961d034ec859f184540f6
+      size: 471
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: 67ad2a5d72af0d8401a6cab61042fedc.dir
+      size: 925895
+      nfiles: 2
+  train_model:
+    cmd: python src/models/train_multiple_models.py
+    deps:
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: 91d76b52919a09d7ace25ab748a7c53e
+      size: 213752
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: f7c85a68c823aadd5a9cb05fd6928f4b
+      size: 712143
+    - path: src/models/train_multiple_models.py
+      hash: md5
+      md5: 38ac010cab9ccd8744bffbad80a45864
+      size: 3736
+    outs:
+    - path: mlruns
+      hash: md5
+      md5: d2167c9dae005d92bc37cc1bbd946d30.dir
+      size: 9233
+      nfiles: 195
