@@ -11,7 +11,7 @@ stages:
   train:
     cmd: >
       python src/models/train_multiple_models.py &&
-      echo "Training complete" > logs/train_receipt.txt
+      echo "Training complete on $(date)" > logs/train_receipt.txt
     deps:
       - data/processed
       - src/models/train_multiple_models.py

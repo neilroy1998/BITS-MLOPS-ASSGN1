@@ -1,10 +1,15 @@
+# src/pipelines/preprocess_runner.py
 import sys
 from pathlib import Path
 
-from src.data.preprocess_03 import load_raw_data, preprocess, split_and_save
-
+# --- Add project root to sys.path ---
+# This must be done before any local imports like 'from src...'
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.append(str(ROOT))
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+# --- End of path modification ---
+
+from src.data.preprocess_03 import load_raw_data, preprocess, split_and_save
 
 
 def main():

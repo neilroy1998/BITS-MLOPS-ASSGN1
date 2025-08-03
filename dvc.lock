@@ -5,21 +5,21 @@ stages:
     deps:
     - path: data/raw/california_housing.csv
       hash: md5
-      md5: ca5b757f0729c68d74d05bf9d9ca8486
-      size: 1895154
+      md5: f8bdb05b7e90d6fef7a4c6d782578b91
+      size: 3330462
     - path: src/data/preprocess_03.py
       hash: md5
       md5: 407285d1e59bff465ab67d1db4e4ef7f
       size: 1827
     - path: src/pipelines/preprocess_runner.py
       hash: md5
-      md5: f69a09208e7b4402c17a62a4c8ac1da8
-      size: 701
+      md5: 9b96ae38979fcbcdf8f3f16ad2d81721
+      size: 872
     outs:
     - path: data/processed
       hash: md5
-      md5: 67ad2a5d72af0d8401a6cab61042fedc.dir
-      size: 925895
+      md5: efade49d256604041d102108607b7baf.dir
+      size: 1103694
       nfiles: 2
   train_model:
     cmd: python src/models/train_multiple_models.py
@@ -43,13 +43,13 @@ stages:
       size: 9233
       nfiles: 195
   train:
-    cmd: "python src/models/train_multiple_models.py && echo \"Training complete\"\
-      \ > logs/train_receipt.txt\n"
+    cmd: "python src/models/train_multiple_models.py && echo \"Training complete on
+      $(date)\" > logs/train_receipt.txt\n"
     deps:
     - path: data/processed
       hash: md5
-      md5: 67ad2a5d72af0d8401a6cab61042fedc.dir
-      size: 925895
+      md5: efade49d256604041d102108607b7baf.dir
+      size: 1103694
       nfiles: 2
     - path: src/models/train_multiple_models.py
       hash: md5
@@ -58,15 +58,15 @@ stages:
     outs:
     - path: logs/train_receipt.txt
       hash: md5
-      md5: 7e5482c17e60ada5b1aa7e3e95917046
-      size: 18
+      md5: 2af6e92e8f9ffc9294ac05d054471820
+      size: 50
   register:
     cmd: python src/models/register_best_model.py
     deps:
     - path: logs/train_receipt.txt
       hash: md5
-      md5: 7e5482c17e60ada5b1aa7e3e95917046
-      size: 18
+      md5: 2af6e92e8f9ffc9294ac05d054471820
+      size: 50
     - path: src/models/register_best_model.py
       hash: md5
       md5: 27449041a2d0930899b3bbaa60ea5c57
