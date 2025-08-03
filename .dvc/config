@@ -1,0 +1,4 @@
+[core]
+    remote = localstore
+['remote "localstore"']
+    url = /Volumes/X10 Raspberry/mlops_assgn1_storage
