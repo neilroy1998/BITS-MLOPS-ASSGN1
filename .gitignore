@@ -16,10 +16,6 @@ __pycache__/
 venv/
 .venv/
 
-# DVC
-*.dvc
-.cache/
-
 # Logs and artifacts
 logs/
 *.log
