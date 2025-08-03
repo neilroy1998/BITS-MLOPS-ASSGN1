@@ -5,6 +5,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
+from src.utils.schema import california_housing_schema
+
 
 def load_raw_data(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
@@ -12,6 +14,8 @@ def load_raw_data(path: str) -> pd.DataFrame:
 
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
+    california_housing_schema.validate(df)  # Pandera validate
+
     df.dropna(inplace=True)
 
     # I got these from the EDA step (describe)
