@@ -1,0 +1,9 @@
+stages:
+  preprocess:
+    cmd: python src/pipelines/preprocess_runner.py
+    deps:
+    - data/raw/california_housing.csv
+    - src/data/preprocess.py
+    - src/pipelines/preprocess_runner.py
+    outs:
+    - data/processed
