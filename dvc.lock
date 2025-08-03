@@ -13,8 +13,8 @@ stages:
       size: 1827
     - path: src/pipelines/preprocess_runner.py
       hash: md5
-      md5: 5b038c0e17e961d034ec859f184540f6
-      size: 471
+      md5: f69a09208e7b4402c17a62a4c8ac1da8
+      size: 701
     outs:
     - path: data/processed
       hash: md5
@@ -42,3 +42,32 @@ stages:
       md5: d2167c9dae005d92bc37cc1bbd946d30.dir
       size: 9233
       nfiles: 195
+  train:
+    cmd: "python src/models/train_multiple_models.py && echo \"Training complete\"\
+      \ > logs/train_receipt.txt\n"
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 67ad2a5d72af0d8401a6cab61042fedc.dir
+      size: 925895
+      nfiles: 2
+    - path: src/models/train_multiple_models.py
+      hash: md5
+      md5: dae5f591cd0fa6e0e900f8ba76f622b2
+      size: 1801
+    outs:
+    - path: logs/train_receipt.txt
+      hash: md5
+      md5: 7e5482c17e60ada5b1aa7e3e95917046
+      size: 18
+  register:
+    cmd: python src/models/register_best_model.py
+    deps:
+    - path: logs/train_receipt.txt
+      hash: md5
+      md5: 7e5482c17e60ada5b1aa7e3e95917046
+      size: 18
+    - path: src/models/register_best_model.py
+      hash: md5
+      md5: 27449041a2d0930899b3bbaa60ea5c57
+      size: 1990

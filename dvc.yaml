@@ -2,16 +2,24 @@ stages:
   preprocess:
     cmd: python src/pipelines/preprocess_runner.py
     deps:
-    - data/raw/california_housing.csv
-    - src/data/preprocess_03.py
-    - src/pipelines/preprocess_runner.py
+      - data/raw/california_housing.csv
+      - src/data/preprocess_03.py
+      - src/pipelines/preprocess_runner.py
     outs:
-    - data/processed
-  train_model:
-    cmd: python src/models/train_multiple_models.py
+      - data/processed
+
+  train:
+    cmd: >
+      python src/models/train_multiple_models.py &&
+      echo "Training complete" > logs/train_receipt.txt
     deps:
-    - data/processed/test.parquet
-    - data/processed/train.parquet
-    - src/models/train_multiple_models.py
+      - data/processed
+      - src/models/train_multiple_models.py
     outs:
-    - mlruns
+      - logs/train_receipt.txt
+
+  register:
+    cmd: python src/models/register_best_model.py
+    deps:
+      - src/models/register_best_model.py
+      - logs/train_receipt.txt
