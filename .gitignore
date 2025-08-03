@@ -18,8 +18,7 @@ venv/
 
 # DVC
 *.dvc
-.dvc/
-.cache/
+!.dvc/
 
 # Logs and artifacts
 logs/
