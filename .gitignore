@@ -32,3 +32,7 @@ logs/
 
 mlruns
 mlartifacts
+
+# SQLite database files
+#monitoring/*.db
+#monitoring/*.db-*
