@@ -19,7 +19,9 @@ stages:
       - logs/train_receipt.txt
 
   register:
-    cmd: python src/models/register_best_model.py
+    cmd: >
+      MLFLOW_TRACKING_URI=http://localhost:5002 
+      python src/models/register_best_model.py
     deps:
       - src/models/register_best_model.py
       - logs/train_receipt.txt

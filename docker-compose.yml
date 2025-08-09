@@ -1,3 +1,4 @@
+# docker-compose.yml
 services:
   fastapi-app:
     build:
@@ -5,46 +6,76 @@ services:
       dockerfile: docker/Dockerfile
     image: california-housing-api:latest
     container_name: fastapi-app-compose
+    restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
+      # These volumes sync your local code/data with the container
       - ./mlruns:/app/mlruns
-      - ./mlartifacts:/mlartifacts
+      - ./mlartifacts:/app/mlartifacts
       - ./logs:/app/logs
-      - ./monitoring:/app/monitoring
-    env_file:
-      - .env
-    # This ensures mlflow starts before the api
+      - ./monitoring/predictions.db:/app/monitoring/predictions.db
+    environment:
+      # This is CRUCIAL. It tells the API to find MLflow using its service name
+      - MLFLOW_TRACKING_URI=http://mlflow:5002
+      - MODEL_NAME=${MODEL_NAME}
     depends_on:
-      - mlflow
-    # Connect this service to our custom network
+      mlflow:
+        condition: service_healthy
     networks:
       - mlops-network
 
   mlflow:
-    # We point to the new mlflow dockerfile directory
     build: ./docker/mlflow
     image: mlflow-server:latest
     container_name: mlflow-server-compose
+    restart: unless-stopped
     ports:
-      # Map host port 5002 to container port 5000
       - "5002:5002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"] # A more specific healthcheck
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     volumes:
-      # Mount volumes for runs and artifacts
+      # These volumes ensure MLflow data persists on your host machine
       - ./mlruns:/mlruns
       - ./mlartifacts:/mlartifacts
-    env_file:
-      - .env
     networks:
       - mlops-network
 
-# Define our custom network
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: prometheus-server-compose
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on: # Wait for the API to be available before trying to scrape it
+      - fastapi-app
+    networks:
+      - mlops-network
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: grafana-server-compose
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - mlops-network
+
 networks:
   mlops-network:
     driver: bridge
-
-  # prometheus:
-  # Not yet set up
-
-  # grafana:
-  # Not yet set up

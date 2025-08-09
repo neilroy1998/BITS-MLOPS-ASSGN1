@@ -13,8 +13,8 @@ stages:
       size: 1827
     - path: src/pipelines/preprocess_runner.py
       hash: md5
-      md5: 9b96ae38979fcbcdf8f3f16ad2d81721
-      size: 872
+      md5: 27c4a630b08b5a61196381cf385c91f9
+      size: 873
     outs:
     - path: data/processed
       hash: md5
@@ -61,7 +61,7 @@ stages:
       md5: 2af6e92e8f9ffc9294ac05d054471820
       size: 50
   register:
-    cmd: python src/models/register_best_model.py
+    cmd: "MLFLOW_TRACKING_URI=http://localhost:5002  python src/models/register_best_model.py\n"
     deps:
     - path: logs/train_receipt.txt
       hash: md5

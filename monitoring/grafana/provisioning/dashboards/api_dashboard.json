@@ -1,0 +1,81 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "title": "API Request Rate",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_total[5m])) by (method, path)",
+          "legendFormat": "{{method}} {{path}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "API Request Latency (p95)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_latency_seconds_bucket[5m])) by (le, path))",
+          "legendFormat": "p95 {{path}}"
+        }
+      ],
+      "unit": "s"
+    },
+    {
+      "id": 3,
+      "title": "Error Rate (5xx)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m]))",
+          "legendFormat": "5xx Errors"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Predicted House Value Distribution",
+      "type": "histogram",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(predicted_house_value_bucket[5m])) by (le)",
+          "legendFormat": "{{le}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "API Performance Dashboard",
+  "uid": "api-dashboard"
+}
