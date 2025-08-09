@@ -1,0 +1,50 @@
+services:
+  fastapi-app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: california-housing-api:latest
+    container_name: fastapi-app-compose
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./mlruns:/app/mlruns
+      - ./mlartifacts:/mlartifacts
+      - ./logs:/app/logs
+      - ./monitoring:/app/monitoring
+    env_file:
+      - .env
+    # This ensures mlflow starts before the api
+    depends_on:
+      - mlflow
+    # Connect this service to our custom network
+    networks:
+      - mlops-network
+
+  mlflow:
+    # We point to the new mlflow dockerfile directory
+    build: ./docker/mlflow
+    image: mlflow-server:latest
+    container_name: mlflow-server-compose
+    ports:
+      # Map host port 5002 to container port 5000
+      - "5002:5002"
+    volumes:
+      # Mount volumes for runs and artifacts
+      - ./mlruns:/mlruns
+      - ./mlartifacts:/mlartifacts
+    env_file:
+      - .env
+    networks:
+      - mlops-network
+
+# Define our custom network
+networks:
+  mlops-network:
+    driver: bridge
+
+  # prometheus:
+  # Not yet set up
+
+  # grafana:
+  # Not yet set up

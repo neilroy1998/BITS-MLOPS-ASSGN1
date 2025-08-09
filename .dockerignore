@@ -1,0 +1,30 @@
+# Python/uv
+.venv/
+__pycache__/
+*.pyc
+
+# Git & DVC
+.git/
+.dvc/
+
+# Data, models, and logs (these are mounted as volumes, not baked into the image)
+data/
+mlruns/
+mlartifacts/
+logs/
+monitoring/
+
+# Environment files
+.env
+*.env.*
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Documentation and notebooks
+notebooks/
+docs/
+README.md
+LICENSE
