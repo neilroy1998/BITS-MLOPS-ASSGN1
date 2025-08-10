@@ -1,7 +1,8 @@
 global:
-  scrape_interval: 15s
-
+  scrape_interval: 5s
 scrape_configs:
-  - job_name: "fastapi"
+  - job_name: fastapi
     static_configs:
-      - targets: ["fastapi-app:8000"]
+      - targets: ["host.docker.internal:8000"]   # <— not 127.0.0.1
+        labels:
+          service: "california-housing-api"

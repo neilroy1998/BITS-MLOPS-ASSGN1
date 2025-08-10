@@ -53,21 +53,21 @@ stages:
       nfiles: 2
     - path: src/models/train_multiple_models.py
       hash: md5
-      md5: dae5f591cd0fa6e0e900f8ba76f622b2
-      size: 1801
+      md5: ae5b3320387af023ee83d58f18d545ad
+      size: 1802
     outs:
     - path: logs/train_receipt.txt
       hash: md5
-      md5: 2af6e92e8f9ffc9294ac05d054471820
+      md5: 8b2179a32101a7f9ad3494e0f566f800
       size: 50
   register:
     cmd: "MLFLOW_TRACKING_URI=http://localhost:5002  python src/models/register_best_model.py\n"
     deps:
     - path: logs/train_receipt.txt
       hash: md5
-      md5: 2af6e92e8f9ffc9294ac05d054471820
+      md5: 8b2179a32101a7f9ad3494e0f566f800
       size: 50
     - path: src/models/register_best_model.py
       hash: md5
-      md5: 27449041a2d0930899b3bbaa60ea5c57
-      size: 1990
+      md5: 2eaa9c33e3871075eb860d4f424dfd76
+      size: 1994

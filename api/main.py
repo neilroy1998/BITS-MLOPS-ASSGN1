@@ -4,12 +4,11 @@ import sqlite3  # New import
 import sys
 from datetime import datetime  # New import
 from pathlib import Path  # New import
-from urllib.request import Request
 
 import mlflow
 import pandas as pd
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
 from mlflow.tracking import MlflowClient
