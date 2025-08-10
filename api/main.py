@@ -2,7 +2,7 @@
 import os
 import sqlite3  # New import
 import sys
-from datetime import datetime  # New import
+from datetime import datetime, timezone  # New import
 from pathlib import Path  # New import
 
 import mlflow
@@ -16,6 +16,12 @@ from prometheus_client import Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, ConfigDict
 
+load_dotenv()
+TEST_MODE = os.getenv("TEST_MODE") == "1"
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
+MODEL_NAME = os.getenv("MODEL_NAME")
+MODEL_ALIAS = "Production"
+
 # --- 1. LOGGER & DB CONFIGURATION ---
 logger.remove()
 logger.add(
@@ -23,17 +29,22 @@ logger.add(
     format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
     level="INFO",
 )
-logger.add(
-    "logs/app.log",
-    rotation="10 MB",
-    retention="7 days",
-    compression="zip",
-    serialize=True,
-    level="INFO",
-)
+if not TEST_MODE:
+    logger.add(
+        "logs/app.log",
+        rotation="10 MB",
+        retention="7 days",
+        compression="zip",
+        serialize=True,
+        level="INFO",
+    )
 
 # Path to the SQLite database
-DB_PATH = Path(__file__).parent.parent / "monitoring" / "predictions.db"
+DB_PATH = (
+    None
+    if TEST_MODE
+    else Path(__file__).parent.parent / "monitoring" / "predictions.db"
+)
 
 # --- 2. API & MODEL SETUP ---
 app = FastAPI(
@@ -60,11 +71,6 @@ PREDICTION_HISTOGRAM = Histogram(
     "predicted_house_value", "Distribution of predicted house values ($100k)"
 )
 
-load_dotenv()
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
-MODEL_NAME = os.getenv("MODEL_NAME")
-MODEL_ALIAS = "Production"
-
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 logger.info(f"Attempting to load model '{MODEL_NAME}' with alias '{MODEL_ALIAS}'...")
 try:
@@ -86,6 +92,8 @@ except Exception as e:
 # --- 3. DATABASE LOGGING FUNCTION ---
 def log_prediction_to_db(features: dict, predicted_value: float):
     """Logs the input features and prediction result to the SQLite database."""
+    if DB_PATH is None:  # skip in tests / CI
+        return
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -98,7 +106,7 @@ def log_prediction_to_db(features: dict, predicted_value: float):
 
         # Prepare data tuple in the correct order
         data_tuple = (
-            datetime.utcnow(),
+            datetime.now(timezone.utc).isoformat(),
             features["MedInc"],
             features["HouseAge"],
             features["AveRooms"],

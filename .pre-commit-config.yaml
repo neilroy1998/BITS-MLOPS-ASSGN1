@@ -15,3 +15,11 @@ repos:
       - id: flake8
         args: [ '--ignore=F401,E402,E501' ]
 
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        language: system
+        entry: bash -c 'TEST_MODE=1 uv run pytest -q'
+        pass_filenames: false
+        stages: [ pre-commit, pre-push ]
