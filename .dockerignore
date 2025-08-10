@@ -12,7 +12,7 @@ data/
 mlruns/
 mlartifacts/
 logs/
-monitoring/
+monitoring/predictions.db
 
 # Environment files
 .env
