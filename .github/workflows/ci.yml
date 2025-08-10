@@ -9,30 +9,25 @@ on:
 jobs:
   docker-test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build image for runner arch (amd64)
+      - name: Build CI image (amd64)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile
           build-args: |
-            ARCH=amd64
+            INSTALL_PROFILE=ci
           tags: housing-allinone:ci
-          load: true   # load into local Docker on the runner, not pushing
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Run tests inside the image
+      - name: Run pytest inside the image
         run: |
           docker run --rm \
             -e TEST_MODE=1 \
             housing-allinone:ci \
-            sh -lc 'uv pip install --system pytest && uv run pytest -q'
+            python -m pytest -q

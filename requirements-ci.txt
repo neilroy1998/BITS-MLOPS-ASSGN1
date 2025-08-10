@@ -1,0 +1,10 @@
+fastapi
+pydantic>=2
+python-dotenv
+loguru
+prometheus-client
+prometheus-fastapi-instrumentator
+pandas
+httpx
+pytest
+pandera>=0.18

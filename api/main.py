@@ -1,28 +1,25 @@
 # api/main.py
 import os
-import sqlite3  # New import
+import sqlite3
 import sys
-from datetime import datetime, timezone  # New import
-from pathlib import Path  # New import
+from datetime import datetime, timezone
+from pathlib import Path
 
-import mlflow
 import pandas as pd
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
-from mlflow.tracking import MlflowClient
 from prometheus_client import Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, ConfigDict
 
 load_dotenv()
-TEST_MODE = os.getenv("TEST_MODE") == "1"
+TEST_MODE = os.getenv("TEST_MODE") == "1" or bool(os.getenv("PYTEST_CURRENT_TEST"))
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
 MODEL_NAME = os.getenv("MODEL_NAME")
 MODEL_ALIAS = "Production"
 
-# --- 1. LOGGER & DB CONFIGURATION ---
 logger.remove()
 logger.add(
     sys.stderr,
@@ -39,14 +36,12 @@ if not TEST_MODE:
         level="INFO",
     )
 
-# Path to the SQLite database
 DB_PATH = (
     None
     if TEST_MODE
     else Path(__file__).parent.parent / "monitoring" / "predictions.db"
 )
 
-# --- 2. API & MODEL SETUP ---
 app = FastAPI(
     title="California House Price Prediction API",
     description="API for predicting house prices using the California Housing dataset.",
@@ -71,64 +66,69 @@ PREDICTION_HISTOGRAM = Histogram(
     "predicted_house_value", "Distribution of predicted house values ($100k)"
 )
 
-mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-logger.info(f"Attempting to load model '{MODEL_NAME}' with alias '{MODEL_ALIAS}'...")
-try:
-    client = MlflowClient()
-    latest_version_info = client.get_model_version_by_alias(
-        name=MODEL_NAME, alias=MODEL_ALIAS
-    )
-    model_version = latest_version_info.version
-    model_uri = f"models:/{MODEL_NAME}/{model_version}"
-    model = mlflow.pyfunc.load_model(model_uri)
+# Model: dummy in tests, MLflow in normal runs
+if TEST_MODE:
+
+    class _DummyModel:
+        def predict(self, df: pd.DataFrame):
+            return [float(df["MedInc"].iat[0])]
+
+    model = _DummyModel()
+    logger.info("Loaded dummy model (TEST_MODE=1).")
+else:
+    import mlflow
+    from mlflow.tracking import MlflowClient
+
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     logger.info(
-        f"✅ Model version {model_version} loaded successfully from {model_uri}."
+        f"Attempting to load model '{MODEL_NAME}' with alias '{MODEL_ALIAS}'..."
     )
-except Exception as e:
-    logger.exception("❌ Failed to load model from MLflow.")
-    raise RuntimeError(f"Could not load model: {e}") from e
+    try:
+        client = MlflowClient()
+        latest = client.get_model_version_by_alias(name=MODEL_NAME, alias=MODEL_ALIAS)
+        model_uri = f"models:/{MODEL_NAME}/{latest.version}"
+        model = mlflow.pyfunc.load_model(model_uri)
+        logger.info(f"Loaded model version {latest.version} from {model_uri}.")
+    except Exception as e:
+        logger.exception("Failed to load model from MLflow.")
+        raise RuntimeError(f"Could not load model: {e}") from e
 
 
-# --- 3. DATABASE LOGGING FUNCTION ---
 def log_prediction_to_db(features: dict, predicted_value: float):
-    """Logs the input features and prediction result to the SQLite database."""
-    if DB_PATH is None:  # skip in tests / CI
+    """Log input and prediction to SQLite if enabled."""
+    if DB_PATH is None:
         return
+    conn = None
     try:
         conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-
-        insert_query = """
-                       INSERT INTO predictions (timestamp, MedInc, HouseAge, AveRooms, AveBedrms, Population, \
-                                                AveOccup, Latitude, Longitude, predicted_value) \
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?); \
-                       """
-
-        # Prepare data tuple in the correct order
-        data_tuple = (
-            datetime.now(timezone.utc).isoformat(),
-            features["MedInc"],
-            features["HouseAge"],
-            features["AveRooms"],
-            features["AveBedrms"],
-            features["Population"],
-            features["AveOccup"],
-            features["Latitude"],
-            features["Longitude"],
-            predicted_value,
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO predictions
+            (timestamp, MedInc, HouseAge, AveRooms, AveBedrms, Population, AveOccup, Latitude, Longitude, predicted_value)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                datetime.now(timezone.utc).isoformat(),
+                features["MedInc"],
+                features["HouseAge"],
+                features["AveRooms"],
+                features["AveBedrms"],
+                features["Population"],
+                features["AveOccup"],
+                features["Latitude"],
+                features["Longitude"],
+                predicted_value,
+            ),
         )
-
-        cursor.execute(insert_query, data_tuple)
         conn.commit()
     except sqlite3.Error as e:
-        # Log the error but don't crash the API
         logger.error(f"Failed to log prediction to database. Error: {e}")
     finally:
         if conn:
             conn.close()
 
 
-# --- 4. INPUT SCHEMA ---
 class HouseFeatures(BaseModel):
     MedInc: float
     HouseAge: float
@@ -154,32 +154,21 @@ class HouseFeatures(BaseModel):
     )
 
 
-# --- 5. API ENDPOINTS ---
 @app.get("/")
 def read_root():
-    logger.info("Root endpoint was accessed.")
     return {"message": "Welcome to the House Price Prediction API!"}
 
 
 @app.get("/health")
 def health_check():
-    logger.info("Health check performed.")
     return {"status": "ok"}
 
 
 @app.post("/predict")
 def predict(features: HouseFeatures):
     feature_dict = features.model_dump()
-    logger.info(f"Received prediction request with features: {feature_dict}")
-
     input_df = pd.DataFrame([feature_dict])
-    prediction = model.predict(input_df)
-    predicted_value = prediction[0]
-
+    predicted_value = float(model.predict(input_df)[0])
     PREDICTION_HISTOGRAM.observe(predicted_value)
-    logger.info(f"Prediction successful. Result: ${predicted_value:,.2f}")
-
-    # Log the result to our database
     log_prediction_to_db(feature_dict, predicted_value)
-
     return {"predicted_median_house_value": predicted_value}
