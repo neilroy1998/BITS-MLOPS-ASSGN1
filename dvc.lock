@@ -5,8 +5,8 @@ stages:
     deps:
     - path: data/raw/california_housing.csv
       hash: md5
-      md5: f8bdb05b7e90d6fef7a4c6d782578b91
-      size: 3330462
+      md5: ca5b757f0729c68d74d05bf9d9ca8486
+      size: 1895154
     - path: src/data/preprocess_03.py
       hash: md5
       md5: 407285d1e59bff465ab67d1db4e4ef7f
@@ -18,8 +18,8 @@ stages:
     outs:
     - path: data/processed
       hash: md5
-      md5: efade49d256604041d102108607b7baf.dir
-      size: 1103694
+      md5: 1e52e923858acc086f5e7f593da6c4b1.dir
+      size: 925895
       nfiles: 2
   train_model:
     cmd: python src/models/train_multiple_models.py
@@ -48,24 +48,24 @@ stages:
     deps:
     - path: data/processed
       hash: md5
-      md5: efade49d256604041d102108607b7baf.dir
-      size: 1103694
+      md5: 1e52e923858acc086f5e7f593da6c4b1.dir
+      size: 925895
       nfiles: 2
     - path: src/models/train_multiple_models.py
       hash: md5
-      md5: ae5b3320387af023ee83d58f18d545ad
-      size: 1802
+      md5: dae5f591cd0fa6e0e900f8ba76f622b2
+      size: 1801
     outs:
     - path: logs/train_receipt.txt
       hash: md5
-      md5: 8b2179a32101a7f9ad3494e0f566f800
+      md5: be3ba34715a0271c9ec4e566600899f3
       size: 50
   register:
     cmd: "MLFLOW_TRACKING_URI=http://localhost:5002  python src/models/register_best_model.py\n"
     deps:
     - path: logs/train_receipt.txt
       hash: md5
-      md5: 8b2179a32101a7f9ad3494e0f566f800
+      md5: be3ba34715a0271c9ec4e566600899f3
       size: 50
     - path: src/models/register_best_model.py
       hash: md5
